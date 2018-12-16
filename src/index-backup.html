@@ -1,0 +1,190 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="A front-end template that helps you build fast, modern mobile web apps.">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+
+    <title>Layout Test</title>
+    <!-- Add to homescreen for Chrome on Android -->
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <link rel="shortcut icon" href="images/favicon.png">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=en">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.red-indigo.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        #view-source {
+            position: fixed;
+            display: block;
+            right: 0;
+            bottom: 0;
+            margin-right: 40px;
+            margin-bottom: 40px;
+            z-index: 900;
+        }
+
+        .accepted-status {
+            /* background-color: #1faa00; */
+            background-image: linear-gradient(147deg, #1faa00 0%, #1faa00 74%);
+            color: white;
+        }
+
+        .progress-status {
+            /* background-color: #ffd600; */
+            background-color: #ebb400;
+            color: white;
+        }
+
+        .rejected-status {
+            background-color: rgb(211, 47, 47) !important;
+            /* background-image: linear-gradient(147deg, #fd3838 0%, #fd3838 74%); */
+            color: white;
+        }
+
+        .mdl-chip {
+            text-align: left !important;
+        }
+
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script>
+        function myFunction() {
+            var today = new Date();
+            var dd = today.getDate();
+            var mm = today.getMonth() + 1; //January is 0!
+            var yyyy = today.getFullYear();
+
+            if (dd < 10) {
+                dd = '0' + dd
+            }
+            if (mm < 10) {
+                mm = '0' + mm
+            }
+            for (i = 0; i < 10; i++) {
+                var table = document.getElementById("notificationList");
+                var row = table.insertRow();
+                var cell1 = row.insertCell(0);
+                var cell2 = row.insertCell(1);
+                var cell3 = row.insertCell(2);
+                var cell4 = row.insertCell(3);
+                var cell5 = row.insertCell(4);
+                cell1.innerHTML = mm + '/' + dd + '/' + yyyy;
+                cell2.innerHTML = "000" + getRndInteger(1, 9);
+                cell3.innerHTML = "0x" + getRndInteger(603456789567890911, 605792468013468012);
+                cell4.innerHTML = getRndInteger(0, 19.9);
+                var rand = getRndInteger(0, 605792468013468012);
+                if (rand % 7 == 0) cell5.innerHTML = "<span class = 'mdl-chip accepted-status'><span class = 'mdl-chip__text'>ACCEPTED</span></span>";
+                else if (rand % 3 == 0) cell5.innerHTML = "<span class = 'mdl-chip progress-status'><span class = 'mdl-chip__text'>IN PROGRESS</span></span>";
+                else cell5.innerHTML = "<span class = 'mdl-chip rejected-status'><span class = 'mdl-chip__text'>REJECTED</span></span>";
+            }
+        }
+
+        function getRndInteger(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+    </script>
+</head>
+
+<body class="mdl-demo mdl-color--grey-100 mdl-color-text--grey-700 mdl-base">
+    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+        <header class="mdl-layout__header mdl-layout__header--scroll mdl-color--primary">
+            <div class="mdl-layout--large-screen-only mdl-layout__header-row">
+            </div>
+            <div class="mdl-layout--large-screen-only mdl-layout__header-row">
+                <h2>AUCTCHAIN</h2>
+            </div>
+            <div class="mdl-layout--large-screen-only mdl-layout__header-row">
+            </div>
+            <div class="mdl-layout__tab-bar mdl-js-ripple-effect mdl-color--primary-dark">
+                <a href="#home" class="mdl-layout__tab is-active">HOME</a>
+                <a href="#bid" class="mdl-layout__tab">BID LIST</a>
+                <button onclick="myFunction()" class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored mdl-shadow--4dp mdl-color--accent" id="add">
+                    <i class="material-icons" role="presentation">add</i>
+                    <span class="visuallyhidden">Add</span>
+                </button>
+            </div>
+        </header>
+        <main class="mdl-layout__content">
+            <div class="mdl-layout__tab-panel is-active" id="home">
+                <section class="section--center mdl-grid mdl-grid--no-spacing">
+                    <table id="notificationList" class="mdl-data-table mdl-js-data-table mdl-data-table mdl-shadow--2dp">
+                        <thead>
+                            <tr>
+                                <th class="mdl-data-table__cell--non-numeric">Tanggal</th>
+                                <th>ID Barang</th>
+                                <th class="mdl-data-table__cell--non-numeric">Address Pemilik</th>
+                                <th>BID (ETH)</th>
+                                <th class="mdl-data-table__cell--non-numeric">STATUS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- ISI -->
+                        </tbody>
+                    </table>
+                </section>
+            </div>
+            <div class="mdl-layout__tab-panel" id="bid">
+                <section class="section--center mdl-grid mdl-grid--no-spacing">
+                    <table class="mdl-data-table mdl-js-data-table mdl-data-table mdl-shadow--2dp">
+                        <thead>
+                            <tr>
+                                <th class="mdl-data-table__cell--non-numeric">Tanggal Mulai</th>
+                                <th class="mdl-data-table__cell--non-numeric">Tanggal Expire</th>
+                                <th>ID Barang</th>
+                                <th>Highest BID (ETH)</th>
+                                <th>BIDDER Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="mdl-data-table__cell--non-numeric">28 Desember 2018</td>
+                                <td class="mdl-data-table__cell--non-numeric">28 Desember 2018</td>
+                                <td>0001</td>
+                                <td>20</td>
+                                <td>20 Bid</td>
+                            </tr>
+                            <tr>
+                                <td class="mdl-data-table__cell--non-numeric">28 Desember 2018</td>
+                                <td class="mdl-data-table__cell--non-numeric">28 Desember 2018</td>
+                                <td>0001</td>
+                                <td>20</td>
+                                <td>20 Bid</td>
+                            </tr>
+                            <tr>
+                                <td class="mdl-data-table__cell--non-numeric">28 Desember 2018</td>
+                                <td class="mdl-data-table__cell--non-numeric">28 Desember 2018</td>
+                                <td>0001</td>
+                                <td>20</td>
+                                <td>20 Bid</td>
+                            </tr>
+                            <tr>
+                                <td class="mdl-data-table__cell--non-numeric">28 Desember 2018</td>
+                                <td class="mdl-data-table__cell--non-numeric">28 Desember 2018</td>
+                                <td>0001</td>
+                                <td>20</td>
+                                <td>20 Bid</td>
+                            </tr>
+                            <tr>
+                                <td class="mdl-data-table__cell--non-numeric">28 Desember 2018</td>
+                                <td class="mdl-data-table__cell--non-numeric">28 Desember 2018</td>
+                                <td>0001</td>
+                                <td>20</td>
+                                <td>20 Bid</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+</body>
+
+</html>

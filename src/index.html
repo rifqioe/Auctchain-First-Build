@@ -1,0 +1,160 @@
+<html>
+
+<head>
+    <title>AUCTCHAIN</title>
+    <style>
+        ::-webkit-scrollbar {
+            width: 0 !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <p id="out_show_address"></p>
+        <p id="out_show_balance"></p>
+    </div>
+    <hr>
+    <div>
+        <p id="out_reg_status"></p>
+        <div id="status_regist">
+            <p>Name : <span id="out_reg_name"></span></p>
+            <p>Email : <span id="out_reg_email"></span></p>
+            <p>Contact : <span id="out_reg_contact"></span></p>
+        </div>
+        <!-- <form id="form_regist"> -->
+            <input id="in_reg_name" placeholder="nama"></input>
+            <input id="in_reg_email" placeholder="email"></input>
+            <input id="in_reg_contact" placeholder="contact"></input>
+            <button id="btn_regist">Regist</button>
+        <!-- </form> -->
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Tanggal Mulai</th>
+                <th>Tanggal Expire</th>
+                <th>ID Barang</th>
+                <th>Highest BID (ETH)</th>
+                <th>BIDDER Count</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- History Goes Here -->
+        </tbody>
+    </table>
+    <script src="js/web3.min.js"></script>
+    <script src="js/requirement.js"></script>
+    <script>
+        // Refresh hack
+        // window.onreset = () => {
+        //     window.location.reload();
+        // }
+        // Membuat variable global untuk menampung account address
+        let accountAddress = null;
+
+        window.addEventListener('load', () => {
+
+            // Load Web3 Support
+            web3 = new Web3(window.web3.currentProvider);
+            if (typeof window.web3 !== 'undefined' && typeof window.web3.currentProvider !== 'undefined')
+                web3.eth.setProvider(window.web3.currentProvider);
+            else
+                web3.eth.setProvider(provider); // set to TestRPC if not available
+
+            var auctionInterval = setInterval(function updateAuctionHTML() {
+
+                queryAddress = document.querySelector('#out_show_address');
+                queryBalance = document.querySelector('#out_show_balance');
+                web3.eth.getAccounts().then(accounts => {
+                    queryAddress.innerHTML = accounts[0];
+                    accountAddress = accounts[0];
+                    web3.eth.getBalance(accounts[0]).then(res => {
+                        queryBalance.innerHTML = web3.utils.fromWei(res, 'ether');
+                    });
+                });
+
+                AuctionHouse = getContract();
+                
+                queryStatus = document.querySelector('#out_reg_status');
+                AuctionHouse.methods.isRegistered(accountAddress).call().then(res => {
+                    if (res){
+                        queryStatus.innerHTML = 'REGISTERED';
+                    } else {
+                        queryStatus.innerHTML = 'UNREGISTERED';
+                    }
+                });
+
+                // AuctionHouse.methods.isRegistered(accountAddress).call().then(result => {
+                //     if (result != 0){
+                //         // AuctionHouse.methods.getRegisteredData(accounts[0]).call()then((v_nama,v_email,v_contact) => {
+                //         //     document.querySelector('#out_reg_name').innerHTML = v_nama;
+                //         //     document.querySelector('#out_reg_emai').innerHTML = v_email;
+                //         //     document.querySelector('#out_reg_contact').innerHTML = v_contact;
+                //             document.querySelector('#out_reg_status').innerHTML = "REGISTERED";
+                //         // });
+                //         // document.querySelector('#status_regist').style.display = 'flex';
+                //         // document.querySelector('#form_regist').style.display = 'none';
+                //     } else {
+                //         document.querySelector('#out_reg_status').innerHTML = "UNREGISTERED";
+                //         // document.querySelector('#status_regist').style.display = 'none';
+                //         // document.querySelector('#form_regist').style.display = 'flex';
+                //     }
+
+                // });
+                
+
+
+                // Auction.methods.getHighestBid().call().then(res => {
+                //     highestBid.innerHTML = web3.utils.fromWei(res, 'ether');
+                // });
+
+                // Auction.methods.getBeneficiary().call().then(res => {
+                //     if (res == accountAddress) {
+                //         beneficiaryAddr.innerHTML = 'You are beneficiary';
+                //         document.querySelector('#auction-form').style.display = 'none';
+                //     } else {
+                //         beneficiaryAddr.innerHTML = res.substr(0, 16);
+                //         document.querySelector('#auction-form').style.display = 'flex';
+                //     }
+                // });
+            }, 1);
+            
+            const registEvent = document.querySelector('#btn_regist');
+            registEvent.addEventListener('click', () => {
+                const name = document.querySelector("#in_reg_name").value;
+                const email = document.querySelector("#in_reg_email").value;
+                const contact = document.querySelector("#in_reg_contact").value;
+                
+                AuctionHouse.methods.register(name,email,contact).send({
+                    from: accountAddress,
+                    gas: 0
+                });
+            });
+
+            // // seleksi input dan button
+            // const bidVal = document.querySelector('#bid-value');
+            // const bidBtn = document.querySelector('#bid-btn');
+
+            // // menambahkan listener click pada button donate
+            // bidBtn.addEventListener('click', () => {
+            //     // mengambil value jumlah ether yang akan didonasikan dalam string
+            //     const nama = document.querySelector("#nama-bidder").value;
+            //     const email = document.querySelector("#email-bidder").value;
+            //     const telepon = document.querySelector("#telepon-bidder").value;
+            //     const bidValue = bidVal.value;
+
+            //     Auction.methods.bid().send({
+            //         value: web3.utils.toWei(bidValue, 'ether'),
+            //         from: accountAddress
+            //     });
+            // });
+            /* Event Regist */
+            // const registEvent = document.querySelector('#bid-btn');
+            
+        });
+    </script>
+</body>
+
+</html>

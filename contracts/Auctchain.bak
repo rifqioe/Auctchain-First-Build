@@ -1,0 +1,234 @@
+pragma solidity ^0.4.24;
+
+contract AuctchainHouse {
+    
+    struct Bid {
+        address bidder;
+        uint amount;
+        uint timestamp;
+    }
+    
+    struct PersonInfo{
+        string  name;
+        string  email;
+        string  number;
+    }
+    
+    enum AuctionStatus {Pending, Active, Inactive}
+    
+    struct Auction {
+        // Location and ownership information of the item for sale
+        address seller;
+        
+        // Auction metadata
+        string title;
+        string description;
+        string link;
+        uint blockNumberOfDeadline;
+        AuctionStatus status;
+        
+        // Pricing
+        uint256 startingPrice;
+        uint256 currentBid;
+        
+        Bid[] bids;
+    }
+    
+    Auction[] public auctions; // All created auctions
+    
+    mapping(address => PersonInfo) registeredUser;
+    mapping(address => uint[]) public auctionsRunByUser; // Pointer to auctions index for auctions run by this user
+    mapping(address => uint[]) public auctionsBidOnByUser; // Pointer to auctions index for auctions this user has bid on
+    mapping(address => uint) refunds;
+    
+    // Events
+    event AuctionCreated(uint id, string title, uint256 startingPrice);
+    event BidPlaced(uint auctionId, address bidder, uint256 amount);
+    
+    function createAuction(
+        string _title,
+        string _description,
+        string _link,
+        uint _deadline,
+        uint256 _startingPrice) public returns (uint auctionId) {
+    
+        auctionId = auctions.length++;
+        Auction storage a = auctions[auctionId];
+        
+        a.seller = msg.sender;
+        a.title = _title;
+        a.description = _description;
+        a.link = _link;
+        a.blockNumberOfDeadline = _deadline;
+        a.status = AuctionStatus.Pending;
+        a.startingPrice = _startingPrice;
+        a.currentBid = _startingPrice;
+        
+        auctionsRunByUser[a.seller].push(auctionId);
+        
+        emit AuctionCreated(auctionId, a.title, a.startingPrice);
+    }
+    
+    function getAuction(uint idx) public view returns (
+        address,
+        string,
+        string,
+        string,
+        uint,
+        uint256,
+        uint) {
+        
+        Auction storage a = auctions[idx];
+        require(a.seller != 0);
+        
+        return (
+            a.seller,
+            a.title,
+            a.description,
+            a.link,
+            a.blockNumberOfDeadline,
+            a.startingPrice,
+            a.bids.length);
+    }
+    
+    function getAuctionCount() public view returns (uint) {
+        return auctions.length;
+    }
+    
+    function getStatus(uint idx) public view returns (uint) {
+        Auction storage a = auctions[idx];
+        return uint(a.status);
+    }
+
+    function getAuctionsCountForUser(address addr) public view returns (uint) {
+        return auctionsRunByUser[addr].length;
+    }
+
+    function getAuctionIdForUserAndIdx(address addr, uint idx) public view returns (uint) {
+        return auctionsRunByUser[addr][idx];
+    }
+    
+    function getBidCountForAuction(uint auctionId) public view returns (uint) {
+        Auction storage a = auctions[auctionId];
+        return a.bids.length;
+    }
+    
+    function getBidForAuctionByIdx(uint auctionId, uint idx) public view returns (address bidder, uint256 amount, uint timestamp) {
+        Auction storage a = auctions[auctionId];
+        require(idx <= a.bids.length - 1);
+
+        Bid storage b = a.bids[idx];
+        return (b.bidder, b.amount, b.timestamp);
+    }
+    
+    function placeBid(uint auctionId) public payable returns (bool success) {
+        uint256 amount = msg.value;
+        Auction storage a = auctions[auctionId];
+
+        require(a.currentBid < amount);
+
+        uint bidIdx = a.bids.length++;
+        Bid storage b = a.bids[bidIdx];
+        b.bidder = msg.sender;
+        b.amount = amount;
+        b.timestamp = now;
+        a.currentBid = amount;
+
+        auctionsBidOnByUser[b.bidder].push(auctionId);
+
+        // Log refunds for the previous bidder
+        if (bidIdx > 0) {
+            Bid storage previousBid = a.bids[bidIdx - 1];
+            refunds[previousBid.bidder] += previousBid.amount;
+        }
+
+        emit BidPlaced(auctionId, b.bidder, b.amount);
+        return true;
+    }
+    
+    function getRefundValue() public view returns (uint) {
+        return refunds[msg.sender];
+    }
+
+    function withdrawRefund() public {
+        uint refund = refunds[msg.sender];
+        refunds[msg.sender] = 0;
+        if (!msg.sender.send(refund))
+            refunds[msg.sender] = refund;
+    }
+    
+    // function endAuction(uint auctionId) returns (bool success) {
+    //     // Check if the auction is passed the end date
+    //     Auction a = auctions[auctionId];
+    //     activeContractRecordConcat[strConcat(addrToString(a.contractAddress), a.recordId)] = false;
+
+    //     // Make sure auction hasn't already been ended
+    //     if (a.status != AuctionStatus.Active) {
+    //         LogFailure("Can not end an auction that's already ended");
+    //         throw;
+    //     }
+        
+    //     if (block.number < a.blockNumberOfDeadline) {
+    //         LogFailure("Can not end an auction that hasn't hit the deadline yet");
+    //         throw; 
+    //     }
+
+    //     Asset asset = Asset(a.contractAddress);
+
+    //     // No bids, make the auction inactive
+    //     if (a.bids.length == 0) {
+    //         if(!asset.setOwner(a.recordId, a.seller)) {
+    //             throw;
+    //         }
+    //         a.status = AuctionStatus.Inactive;
+    //         return true;
+    //     }
+
+    //     Bid topBid = a.bids[a.bids.length - 1];
+
+    //     // If the auction hit its reserve price
+    //     if (a.currentBid >= a.reservePrice) {
+    //         uint distributionShare = a.currentBid * a.distributionCut / 100;  // Calculate the distribution cut
+    //         uint sellerShare = a.currentBid - distributionShare;
+
+    //         if(!asset.setOwner(a.recordId, topBid.bidder)) {
+    //             throw;
+    //         } // Set the items new owner
+
+    //         refunds[a.distributionAddress] += distributionShare;
+    //         refunds[a.seller] += sellerShare;
+
+    //         AuctionEndedWithWinner(auctionId, topBid.bidder, a.currentBid);
+    //     } else {
+    //         // Return the item to the owner and the money to the top bidder
+    //         if(!asset.setOwner(a.recordId, a.seller)) {
+    //             throw;
+    //         }
+
+    //         refunds[topBid.bidder] += a.currentBid;
+
+    //         AuctionEndedWithoutWinner(auctionId, a.currentBid, a.reservePrice);
+    //     }
+
+    //     a.status = AuctionStatus.Inactive;
+    //     return true;
+    // }
+    
+    function strConcat(string _a, string _b) internal pure returns (string) {
+        bytes memory _ba = bytes(_a);
+        bytes memory _bb = bytes(_b);
+        bytes memory ab = new bytes (_ba.length + _bb.length);
+        uint k = 0;
+        for (uint i = 0; i < _ba.length; i++) ab[k++] = _ba[i];
+        for (i = 0; i < _bb.length; i++) ab[k++] = _bb[i];
+        return string(ab);
+    }
+
+    function addrToString(address x) public pure returns (string) {
+        bytes memory b = new bytes(20);
+        for (uint i = 0; i < 20; i++)
+            b[i] = byte(uint8(uint(x) / (2**(8*(19 - i)))));
+        return string(b);
+    }
+    
+}
