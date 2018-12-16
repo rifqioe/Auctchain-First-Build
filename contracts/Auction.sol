@@ -214,7 +214,7 @@ contract AuctchainHouse {
         Bid storage topBid = a.bids[a.bids.length - 1];
 
         // If the auction hit its reserve price
-        if(a.currentBid > a.startingPrice) {}
+        if(a.currentBid > a.startingPrice) {
             a.seller.transfer(topBid.amount);
             emit AuctionEndedWithWinner(auctionId, topBid.bidder, a.currentBid);
         }
