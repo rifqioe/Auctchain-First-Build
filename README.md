@@ -10,8 +10,8 @@ This project needs :
 The Web3 RPC location will be picked up from the `truffle.js` file.
 
 0. Clone this repo
-0. `npm install truffle`
-0. Make sure `testrpc` is running on its default port. Then:
+0. `npm install -g truffle`
+0. Make sure Ganache opened and running on its default port. Then:
   - `truffle compile` - Create artifacts of the contract.
   - `truffle migrate --reset` - Migrate the artifacts to local server.
 
