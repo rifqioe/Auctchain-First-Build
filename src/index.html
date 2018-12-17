@@ -9,6 +9,11 @@
         ::-webkit-scrollbar {
             width: 0 !important;
         }
+    .thumb {
+        height: 75px;
+        border: 1px solid #000;
+        margin: 10px 5px 0 0;
+    }
     </style>
 </head>
 
@@ -26,7 +31,8 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="h5" id="checking" style="color:white">
+                <a class="h5" id="time" style="color:white">
+                    Here
                 </a>
             </li>
         </ul>
@@ -35,7 +41,7 @@
     <div class="container-fluid pull-left ">
         <div class="row pull-left">
             <div class="col pull-left">
-                <form id="form_regist" style="display: inherit; margin-top: 25px; border-radius: 5px;">
+                <div id="form_regist" style="display: inherit; margin-top: 25px; border-radius: 5px;">
                     <div class="form-group">
                         <label>Username</label>
                         <input type="text" class="form-control" id="in_reg_name" placeholder="Enter your name">
@@ -52,10 +58,10 @@
                         <input type="text" class="form-control" id="in_reg_contact" placeholder="Enter your contact">
                     </div>
                     <button type="submit" id="btn_regist" class="btn btn-primary">Submit</button>
-                </form>
+                </div>
             </div>
             <div class="col pull-left">
-                <form id="form_regist" style="display: inherit; margin-top: 25px; border-radius: 5px;">
+                <div id="form_regist" style="display: inherit; margin-top: 25px; border-radius: 5px;">
                     <div class="form-group">
                         <label>Title</label>
                         <input type="text" class="form-control" id="in_reg_item_title">
@@ -66,7 +72,8 @@
                     </div>
                     <div class="form-group">
                         <label>Link</label>
-                        <input type="text" class="form-control" id="in_reg_item_link">
+                        <input type="file" class="form-control" id="in_reg_item_link" name="files[]" multiple />
+                        <output id="list"></output>
                     </div>
                     <div class="form-group">
                         <label>Deadline</label>
@@ -76,11 +83,11 @@
                         <label>Start Price</label>
                         <input type="text" class="form-control" id="in_reg_item_startprc">
                     </div>
-                    <button id="btn_item_regist" class="btn btn-primary">Submit</button>
-                </form>
+                    <button type="submit" id="btn_item_regist" class="btn btn-primary">Submit</button>
+                </div>
             </div>
             <div class="col pull-left">
-                <form id="form_regist" style="display: inherit; margin-top: 25px; border-radius: 5px;">
+                <div id="form_regist" style="display: inherit; margin-top: 25px; border-radius: 5px;">
                     <div class="form-group">
                         <label class="sr-only" for="inlineFormInputGroup">Bid</label>
                         <div class="input-group mb-2">
@@ -99,7 +106,7 @@
                         </div>
                     </div>
                     <button type="submit" id="btn_bid" class="btn btn-primary">Submit</button>
-                </form>
+                </div>
             </div>
         </div>
     </div>
@@ -109,14 +116,14 @@
             <caption>Bid List</caption>
             <thead class="thead-dark">
                 <tr>
-                    <th>seller</th>
-                    <th>title</th>
-                    <th>description</th>
-                    <th>link</th>
-                    <th>description</th>
-                    <th>blockNumberOfDeadline</th>
-                    <th>startingPrice</th>
-                    <th>bids</th>
+                    <th>Number</th>
+                    <th>Seller</th>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th>Link</th>
+                    <th>Deadline (Block)</th>
+                    <th>Start Price</th>
+                    <th>Bids</th>
                 </tr>
             </thead>
             <tbody id="table_historyBid">
@@ -128,9 +135,9 @@
     <script src="js/requirement.js"></script>
     <script>
         // Refresh hack
-        // window.onreset = () => {
-        //     window.location.reload();
-        // }
+        window.onsubmit = () => {
+            window.location.reload();
+        }
         // Membuat variable global untuk menampung account address
         let accountAddress = null;
 
@@ -156,7 +163,7 @@
 
                 queryStatus = document.querySelector('#out_reg_status');
                 AuctionHouse.methods.isRegistered(accountAddress).call().then(res => {
-                    if (res) {
+                    if (res == true) {
                         AuctionHouse.methods.getRegisteredData(accountAddress).call().then(reg => {
                             queryUser.innerHTML = reg[0] + ' // ' + reg[1] + ' // ' +
                                 reg[2];
@@ -167,18 +174,57 @@
                         document.querySelector('#form_regist').style.display = 'inherit';
                     }
                 });
+
+
+
             }, 100);
 
+            // const getBlockAverageTime = async () => {
+            //     const span = 100;
+            //     const times = [];
+            //     const currentNumber = await web3.eth.getBlockNumber();
+            //     const firstBlock = await web3.eth.getBlock(currentNumber - span);
+            //     let prevTimestamp = firstBlock.timestamp;
 
-            AuctionHouse.methods.getAuctionCount().call().then(length => {
-                for (var i = 0; i < length; i++) {
-                    allert(length);
-                    AuctionHouse.methods.getAuction().call(auctionId).then(function (result) {
-                        var container = document.getElementById("#table_historyBid");
-                        container.innerHTML = constructAuctionView(result[0]);
+            //     for (let i = currentNumber - span + 1; i <= currentNumber; i++) {
+            //         const block = await web3.eth.getBlock(i);
+            //         let time = block.timestamp - prevTimestamp;
+            //         prevTimestamp = block.timestamp;
+            //         times.push(time);
+            //     }
+
+            //     document.querySelector('#time').innerHTML = Math.round(times.reduce((a, b) => a + b) / times.length);
+            // }
+
+            AuctionHouse.methods.getAuctionCount().call().then(res => {
+                for (let i = 0; i < res; i++) {
+                    AuctionHouse.methods.getAuction(i).call().then(result => {
+                        let tableRef = document.getElementById('table_historyBid');
+                        let newRow = tableRef.insertRow(i);
+                        let newCell0 = newRow.insertCell(0);
+                        let newCell1 = newRow.insertCell(1);
+                        let newCell2 = newRow.insertCell(2);
+                        let newCell3 = newRow.insertCell(3);
+                        let newCell4 = newRow.insertCell(4);
+                        let newCell5 = newRow.insertCell(5);
+                        let newCell6 = newRow.insertCell(6);
+                        let newCell7 = newRow.insertCell(7);
+
+                        newCell0.appendChild(document.createTextNode(i));
+                        newCell1.appendChild(document.createTextNode(result[0]));
+                        newCell2.appendChild(document.createTextNode(result[1]));
+                        newCell3.appendChild(document.createTextNode(result[2]));
+                        newCell4.appendChild(document.createTextNode(result[3]));
+                        AuctionHouse.methods.parseTimestamp(i).call().then(time =>
+                            
+                        });
+                        newCell5.appendChild(document.createTextNode(result[4]));
+                        newCell6.appendChild(document.createTextNode(result[5]));
+                        newCell7.appendChild(document.createTextNode(result[6]));
                     });
                 }
             });
+
 
             const registEvent = document.querySelector('#btn_regist');
             registEvent.addEventListener('click', () => {
@@ -237,6 +283,39 @@
             // const registEvent = document.querySelector('#bid-btn');
 
         });
+    </script>
+    <script>
+        function handleFileSelect(evt) {
+            var files = evt.target.files; // FileList object
+
+            // Loop through the FileList and render image files as thumbnails.
+            for (var i = 0, f; f = files[i]; i++) {
+
+                // Only process image files.
+                if (!f.type.match('image.*')) {
+                    continue;
+                }
+
+                var reader = new FileReader();
+
+                // Closure to capture the file information.
+                reader.onload = (function (theFile) {
+                    return function (e) {
+                        // Render thumbnail.
+                        var span = document.createElement('span');
+                        span.innerHTML = ['<img class="thumb" src="', e.target.result,
+                            '" title="', escape(theFile[0].name), '"/>'
+                        ].join('');
+                        document.getElementById('list').insertBefore(span, null);
+                    };
+                })(f);
+
+                // Read in the image file as a data URL.
+                reader.readAsDataURL(f);
+            }
+        }
+
+        document.getElementById('in_reg_item_link').addEventListener('change', handleFileSelect, false);
     </script>
 
 </body>
