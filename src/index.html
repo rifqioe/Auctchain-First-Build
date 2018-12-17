@@ -2,6 +2,9 @@
 
 <head>
     <title>AUCTCHAIN</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <!-- <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script> -->
+    <script src="js/bootstrap.min.js"></script>
     <style>
         ::-webkit-scrollbar {
             width: 0 !important;
@@ -10,40 +13,55 @@
 </head>
 
 <body>
-    <div>
-        <p id="out_show_address"></p>
-        <p id="out_show_balance"></p>
-    </div>
-    <hr>
-    <div>
-        <p id="out_reg_status"></p>
-        <div id="status_regist">
-            <p>Name : <span id="out_reg_name"></span></p>
-            <p>Email : <span id="out_reg_email"></span></p>
-            <p>Contact : <span id="out_reg_contact"></span></p>
-        </div>
-        <!-- <form id="form_regist"> -->
-            <input id="in_reg_name" placeholder="nama"></input>
-            <input id="in_reg_email" placeholder="email"></input>
-            <input id="in_reg_contact" placeholder="contact"></input>
-            <button id="btn_regist">Regist</button>
-        <!-- </form> -->
+    <nav class="navbar sticky-top navbar-dark bg-dark">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item">
+                <a class="h3" style="color:white">
+                    Hello, <small id="out_show_user">Anonymous</small>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="h5" style="color:white">
+                    You have, <small id="out_show_balance">unknown</small> ETH balance.
+                </a>
+            </li>
+        </ul>
+
+    </nav>
+    <div class="container-fluid">
+        <form class="col-md-3" id="form_regist" style="display: inherit; margin-top: 25px; border-radius: 5px;">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" class="form-control" id="in_reg_name" placeholder="Enter your name">
+            </div>
+            <div class="form-group">
+                <label>Email address</label>
+                <input type="email" class="form-control" id="in_reg_email" aria-describedby="emailHelp" placeholder="Enter your email">
+                <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+            </div>
+            <div class="form-group">
+                <label>Contact</label>
+                <input type="text" class="form-control" id="in_reg_contact" placeholder="Enter your contact">
+            </div>
+            <button type="submit" id="btn_regist" class="btn btn-primary">Submit</button>
+        </form>
     </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Tanggal Mulai</th>
-                <th>Tanggal Expire</th>
-                <th>ID Barang</th>
-                <th>Highest BID (ETH)</th>
-                <th>BIDDER Count</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- History Goes Here -->
-        </tbody>
-    </table>
+    <div class="container">
+        <table id="table_historyBid" class="table table-hover table-nd">
+            <caption>Bid List</caption>
+            <thead class="thead-dark">
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Bidder</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- History Goes Here -->
+            </tbody>
+        </table>
+    </div>
     <script src="js/web3.min.js"></script>
     <script src="js/requirement.js"></script>
     <script>
@@ -65,10 +83,9 @@
 
             var auctionInterval = setInterval(function updateAuctionHTML() {
 
-                queryAddress = document.querySelector('#out_show_address');
+                queryUser = document.querySelector('#out_show_user');
                 queryBalance = document.querySelector('#out_show_balance');
                 web3.eth.getAccounts().then(accounts => {
-                    queryAddress.innerHTML = accounts[0];
                     accountAddress = accounts[0];
                     web3.eth.getBalance(accounts[0]).then(res => {
                         queryBalance.innerHTML = web3.utils.fromWei(res, 'ether');
@@ -76,34 +93,31 @@
                 });
 
                 AuctionHouse = getContract();
-                
+
                 queryStatus = document.querySelector('#out_reg_status');
                 AuctionHouse.methods.isRegistered(accountAddress).call().then(res => {
-                    if (res){
-                        queryStatus.innerHTML = 'REGISTERED';
+                    if (res) {
+                        AuctionHouse.methods.getRegisteredData(accountAddress).call().then(reg => {
+                            queryUser.innerHTML = reg[0] + ' // ' + reg[1] + ' // ' +
+                                reg[2];
+                        });
+                        document.querySelector('#form_regist').style.display = 'none';
                     } else {
-                        queryStatus.innerHTML = 'UNREGISTERED';
+                        queryUser.innerHTML = accountAddress;
+                        document.querySelector('#form_regist').style.display = 'inherit';
                     }
                 });
 
-                // AuctionHouse.methods.isRegistered(accountAddress).call().then(result => {
-                //     if (result != 0){
-                //         // AuctionHouse.methods.getRegisteredData(accounts[0]).call()then((v_nama,v_email,v_contact) => {
-                //         //     document.querySelector('#out_reg_name').innerHTML = v_nama;
-                //         //     document.querySelector('#out_reg_emai').innerHTML = v_email;
-                //         //     document.querySelector('#out_reg_contact').innerHTML = v_contact;
-                //             document.querySelector('#out_reg_status').innerHTML = "REGISTERED";
-                //         // });
-                //         // document.querySelector('#status_regist').style.display = 'flex';
-                //         // document.querySelector('#form_regist').style.display = 'none';
-                //     } else {
-                //         document.querySelector('#out_reg_status').innerHTML = "UNREGISTERED";
-                //         // document.querySelector('#status_regist').style.display = 'none';
-                //         // document.querySelector('#form_regist').style.display = 'flex';
-                //     }
+                AuctionHouse.methods.getAuctionsCountForUser(accountAddress).call().then(length => {
+                    for (i = 0; i < length; i++) {
+                        AuctionHouse.methods.getAuctionIdForUserAndIdx(accountAddress, i).call()
+                            .then(res => {
 
-                // });
-                
+                            });
+                    }
+                });
+
+
 
 
                 // Auction.methods.getHighestBid().call().then(res => {
@@ -120,16 +134,15 @@
                 //     }
                 // });
             }, 1);
-            
+
             const registEvent = document.querySelector('#btn_regist');
             registEvent.addEventListener('click', () => {
                 const name = document.querySelector("#in_reg_name").value;
                 const email = document.querySelector("#in_reg_email").value;
                 const contact = document.querySelector("#in_reg_contact").value;
-                
-                AuctionHouse.methods.register(name,email,contact).send({
-                    from: accountAddress,
-                    gas: 0
+
+                AuctionHouse.methods.register(name, email, contact).send({
+                    from: accountAddress
                 });
             });
 
@@ -152,8 +165,22 @@
             // });
             /* Event Regist */
             // const registEvent = document.querySelector('#bid-btn');
-            
+
         });
+    </script>
+    <script>
+        function myCreateFunction() {
+            var table = document.getElementById("table_historyBid");
+            var row = table.insertRow(0);
+            var cell1 = row.insertCell(0);
+            var cell2 = row.insertCell(1);
+            var cell1 = row.insertCell(0);
+            var cell2 = row.insertCell(1);
+            var cell1 = row.insertCell(0);
+            var cell2 = row.insertCell(1);
+            cell1.innerHTML = "NEW CELL1";
+            cell2.innerHTML = "NEW CELL2";
+        }
     </script>
 </body>
 

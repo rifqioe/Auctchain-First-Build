@@ -71,11 +71,11 @@ contract AuctchainHouse {
         return registeredUser[addr].status;
     }
 
-    function getRegisteredData() public view returns (string, string, string){
+    function getRegisteredData(address addr) public view returns (string, string, string){
         return (
-            registeredUser[msg.sender].name,
-            registeredUser[msg.sender].email,
-            registeredUser[msg.sender].contact);
+            registeredUser[addr].name,
+            registeredUser[addr].email,
+            registeredUser[addr].contact);
     }
     /* End User Register Section ------------------------------- */
     
