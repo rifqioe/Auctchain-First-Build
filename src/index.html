@@ -25,39 +25,101 @@
                     You have, <small id="out_show_balance">unknown</small> ETH balance.
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="h5" id="checking" style="color:white">
+                </a>
+            </li>
         </ul>
 
     </nav>
-    <div class="container-fluid">
-        <form class="col-md-3" id="form_regist" style="display: inherit; margin-top: 25px; border-radius: 5px;">
-            <div class="form-group">
-                <label>Username</label>
-                <input type="text" class="form-control" id="in_reg_name" placeholder="Enter your name">
+    <div class="container-fluid pull-left ">
+        <div class="row pull-left">
+            <div class="col pull-left">
+                <form id="form_regist" style="display: inherit; margin-top: 25px; border-radius: 5px;">
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" class="form-control" id="in_reg_name" placeholder="Enter your name">
+                    </div>
+                    <div class="form-group">
+                        <label>Email address</label>
+                        <input type="email" class="form-control" id="in_reg_email" aria-describedby="emailHelp"
+                            placeholder="Enter your email">
+                        <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone
+                            else.</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Contact</label>
+                        <input type="text" class="form-control" id="in_reg_contact" placeholder="Enter your contact">
+                    </div>
+                    <button type="submit" id="btn_regist" class="btn btn-primary">Submit</button>
+                </form>
             </div>
-            <div class="form-group">
-                <label>Email address</label>
-                <input type="email" class="form-control" id="in_reg_email" aria-describedby="emailHelp" placeholder="Enter your email">
-                <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+            <div class="col pull-left">
+                <form id="form_regist" style="display: inherit; margin-top: 25px; border-radius: 5px;">
+                    <div class="form-group">
+                        <label>Title</label>
+                        <input type="text" class="form-control" id="in_reg_item_title">
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <input type="text" class="form-control" id="in_reg_item_desc">
+                    </div>
+                    <div class="form-group">
+                        <label>Link</label>
+                        <input type="text" class="form-control" id="in_reg_item_link">
+                    </div>
+                    <div class="form-group">
+                        <label>Deadline</label>
+                        <input type="text" class="form-control" id="in_reg_item_deadline">
+                    </div>
+                    <div class="form-group">
+                        <label>Start Price</label>
+                        <input type="text" class="form-control" id="in_reg_item_startprc">
+                    </div>
+                    <button id="btn_item_regist" class="btn btn-primary">Submit</button>
+                </form>
             </div>
-            <div class="form-group">
-                <label>Contact</label>
-                <input type="text" class="form-control" id="in_reg_contact" placeholder="Enter your contact">
+            <div class="col pull-left">
+                <form id="form_regist" style="display: inherit; margin-top: 25px; border-radius: 5px;">
+                    <div class="form-group">
+                        <label class="sr-only" for="inlineFormInputGroup">Bid</label>
+                        <div class="input-group mb-2">
+                            <input id="in_bid_val_wei" type="text" class="form-control" onclick="convertWei();">
+                            <div class="input-group-prepend">
+                                <div class="input-group-text">WEI</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="input-group mb-2">
+                            <h4 id="in_bid_val_eth"></h4>
+                            <div class="input-group-prepend">
+                                <div class="input-group-text">ETH</div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" id="btn_bid" class="btn btn-primary">Submit</button>
+                </form>
             </div>
-            <button type="submit" id="btn_regist" class="btn btn-primary">Submit</button>
-        </form>
+        </div>
     </div>
 
     <div class="container">
-        <table id="table_historyBid" class="table table-hover table-nd">
+        <table class="table table-hover table-nd">
             <caption>Bid List</caption>
             <thead class="thead-dark">
                 <tr>
-                    <th>Timestamp</th>
-                    <th>Bidder</th>
-                    <th>Value</th>
+                    <th>seller</th>
+                    <th>title</th>
+                    <th>description</th>
+                    <th>link</th>
+                    <th>description</th>
+                    <th>blockNumberOfDeadline</th>
+                    <th>startingPrice</th>
+                    <th>bids</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="table_historyBid">
                 <!-- History Goes Here -->
             </tbody>
         </table>
@@ -73,7 +135,6 @@
         let accountAddress = null;
 
         window.addEventListener('load', () => {
-
             // Load Web3 Support
             web3 = new Web3(window.web3.currentProvider);
             if (typeof window.web3 !== 'undefined' && typeof window.web3.currentProvider !== 'undefined')
@@ -81,18 +142,17 @@
             else
                 web3.eth.setProvider(provider); // set to TestRPC if not available
 
-            var auctionInterval = setInterval(function updateAuctionHTML() {
-
-                queryUser = document.querySelector('#out_show_user');
-                queryBalance = document.querySelector('#out_show_balance');
-                web3.eth.getAccounts().then(accounts => {
-                    accountAddress = accounts[0];
-                    web3.eth.getBalance(accounts[0]).then(res => {
-                        queryBalance.innerHTML = web3.utils.fromWei(res, 'ether');
-                    });
+            AuctionHouse = getContract();
+            queryUser = document.querySelector('#out_show_user');
+            queryBalance = document.querySelector('#out_show_balance');
+            web3.eth.getAccounts().then(accounts => {
+                accountAddress = accounts[0];
+                web3.eth.getBalance(accounts[0]).then(res => {
+                    queryBalance.innerHTML = web3.utils.fromWei(res, 'ether');
                 });
+            });
 
-                AuctionHouse = getContract();
+            var auctionInterval = setInterval(function updateAuctionHTML() {
 
                 queryStatus = document.querySelector('#out_reg_status');
                 AuctionHouse.methods.isRegistered(accountAddress).call().then(res => {
@@ -107,44 +167,54 @@
                         document.querySelector('#form_regist').style.display = 'inherit';
                     }
                 });
-
-                AuctionHouse.methods.getAuctionsCountForUser(accountAddress).call().then(length => {
-                    for (i = 0; i < length; i++) {
-                        AuctionHouse.methods.getAuctionIdForUserAndIdx(accountAddress, i).call()
-                            .then(res => {
-
-                            });
-                    }
-                });
+            }, 100);
 
 
-
-
-                // Auction.methods.getHighestBid().call().then(res => {
-                //     highestBid.innerHTML = web3.utils.fromWei(res, 'ether');
-                // });
-
-                // Auction.methods.getBeneficiary().call().then(res => {
-                //     if (res == accountAddress) {
-                //         beneficiaryAddr.innerHTML = 'You are beneficiary';
-                //         document.querySelector('#auction-form').style.display = 'none';
-                //     } else {
-                //         beneficiaryAddr.innerHTML = res.substr(0, 16);
-                //         document.querySelector('#auction-form').style.display = 'flex';
-                //     }
-                // });
-            }, 1);
+            AuctionHouse.methods.getAuctionCount().call().then(length => {
+                for (var i = 0; i < length; i++) {
+                    allert(length);
+                    AuctionHouse.methods.getAuction().call(auctionId).then(function (result) {
+                        var container = document.getElementById("#table_historyBid");
+                        container.innerHTML = constructAuctionView(result[0]);
+                    });
+                }
+            });
 
             const registEvent = document.querySelector('#btn_regist');
             registEvent.addEventListener('click', () => {
-                const name = document.querySelector("#in_reg_name").value;
-                const email = document.querySelector("#in_reg_email").value;
-                const contact = document.querySelector("#in_reg_contact").value;
+                const userName = document.querySelector("#in_reg_name").value;
+                const userEmail = document.querySelector("#in_reg_email").value;
+                const userContact = document.querySelector("#in_reg_contact").value;
 
-                AuctionHouse.methods.register(name, email, contact).send({
+                AuctionHouse.methods.register(userName, userEmail, userContact).send({
                     from: accountAddress
                 });
             });
+
+            const registItemEvent = document.querySelector('#btn_item_regist');
+            registItemEvent.addEventListener('click', () => {
+                const itemTitle = document.querySelector("#in_reg_item_title").value;
+                const itemDesc = document.querySelector("#in_reg_item_desc").value;
+                const itemLink = document.querySelector("#in_reg_item_link").value;
+                const itemDeadline = document.querySelector("#in_reg_item_deadline").value;
+                const itemStrPrice = document.querySelector("#in_reg_item_startprc").value;
+
+                AuctionHouse.methods.createAuction(itemTitle, itemDesc, itemLink, itemDeadline,
+                    itemStrPrice).send({
+                    from: accountAddress
+                });
+            });
+
+            // const registEvent = document.querySelector('#btn_regist');
+            // registEvent.addEventListener('click', () => {
+            //     const name = document.querySelector("#in_reg_name").value;
+            //     const email = document.querySelector("#in_reg_email").value;
+            //     const contact = document.querySelector("#in_reg_contact").value;
+
+            //     AuctionHouse.methods.register(name, email, contact).send({
+            //         from: accountAddress
+            //     });
+            // });
 
             // // seleksi input dan button
             // const bidVal = document.querySelector('#bid-value');
@@ -168,20 +238,7 @@
 
         });
     </script>
-    <script>
-        function myCreateFunction() {
-            var table = document.getElementById("table_historyBid");
-            var row = table.insertRow(0);
-            var cell1 = row.insertCell(0);
-            var cell2 = row.insertCell(1);
-            var cell1 = row.insertCell(0);
-            var cell2 = row.insertCell(1);
-            var cell1 = row.insertCell(0);
-            var cell2 = row.insertCell(1);
-            cell1.innerHTML = "NEW CELL1";
-            cell2.innerHTML = "NEW CELL2";
-        }
-    </script>
+
 </body>
 
 </html>

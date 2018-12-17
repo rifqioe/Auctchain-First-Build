@@ -106,7 +106,7 @@ contract AuctchainHouse {
         emit AuctionCreated(auctionId, a.title, a.startingPrice);
     }
     
-    function getAuction(uint idx) public view returns (
+    function getAuction(address addr, uint idx) public view returns (
         address,
         string,
         string,
@@ -116,7 +116,7 @@ contract AuctchainHouse {
         uint) {
         
         Auction storage a = auctions[idx];
-        require(a.seller != msg.sender);
+        require(a.seller != addr);
         
         return (
             a.seller,
