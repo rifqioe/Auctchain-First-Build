@@ -91,20 +91,17 @@
                     <div class="form-group">
                         <label class="sr-only" for="inlineFormInputGroup">Bid</label>
                         <div class="input-group mb-2">
-                            <input id="in_bid_val_wei" type="text" class="form-control" onclick="convertWei();">
+                            <input id="in_bid_number" type="text" class="form-control" placeholder="NO">
+                            <input id="in_bid_val" type="text" class="form-control" placeholder="WEI">
+                            
                             <div class="input-group-prepend">
                                 <div class="input-group-text">WEI</div>
                             </div>
+                            
                         </div>
                     </div>
-                    <div class="form-group">
-                        <div class="input-group mb-2">
-                            <h4 id="in_bid_val_eth"></h4>
-                            <div class="input-group-prepend">
-                                <div class="input-group-text">ETH</div>
-                            </div>
-                        </div>
-                    </div>
+                    <br>
+                            <p id="out_bid_val_eth"></p>
                     <button type="submit" id="btn_bid" class="btn btn-primary">Submit</button>
                 </div>
             </div>
@@ -124,6 +121,7 @@
                     <th>Deadline (Block)</th>
                     <th>Start Price</th>
                     <th>Bids</th>
+                    <th>Higest Bid</th>
                 </tr>
             </thead>
             <tbody id="table_historyBid">
@@ -175,7 +173,8 @@
                     }
                 });
 
-
+                var etherVal = document.querySelector('#in_bid_val').value;
+                document.querySelector('#out_bid_val_eth').innerHTML = web3.utils.fromWei(etherVal,'ether');
 
             }, 100);
 
@@ -195,6 +194,7 @@
 
             //     document.querySelector('#time').innerHTML = Math.round(times.reduce((a, b) => a + b) / times.length);
             // }
+            
 
             AuctionHouse.methods.getAuctionCount().call().then(res => {
                 for (let i = 0; i < res; i++) {
@@ -209,18 +209,19 @@
                         let newCell5 = newRow.insertCell(5);
                         let newCell6 = newRow.insertCell(6);
                         let newCell7 = newRow.insertCell(7);
+                        let newCell8 = newRow.insertCell(8);
 
                         newCell0.appendChild(document.createTextNode(i));
                         newCell1.appendChild(document.createTextNode(result[0]));
                         newCell2.appendChild(document.createTextNode(result[1]));
                         newCell3.appendChild(document.createTextNode(result[2]));
                         newCell4.appendChild(document.createTextNode(result[3]));
-                        AuctionHouse.methods.parseTimestamp(i).call().then(time =>
-                            
-                        });
                         newCell5.appendChild(document.createTextNode(result[4]));
                         newCell6.appendChild(document.createTextNode(result[5]));
                         newCell7.appendChild(document.createTextNode(result[6]));
+                        newCell8.appendChild(document.createTextNode(result[7]));          
+                        
+                        alert(result[7]);
                     });
                 }
             });
@@ -245,9 +246,18 @@
                 const itemDeadline = document.querySelector("#in_reg_item_deadline").value;
                 const itemStrPrice = document.querySelector("#in_reg_item_startprc").value;
 
-                AuctionHouse.methods.createAuction(itemTitle, itemDesc, itemLink, itemDeadline,
-                    itemStrPrice).send({
+                AuctionHouse.methods.createAuction(itemTitle, itemDesc, itemLink, itemDeadline, itemStrPrice).send({
                     from: accountAddress
+                });
+            });
+
+            const bidEvent = document.querySelector('#btn_bid');
+            bidEvent.addEventListener('click', () => {
+                const numberBid = document.querySelector("#in_bid_number").value;
+                const valueBid = document.querySelector("#in_bid_val").value;
+                AuctionHouse.methods.placeBid(numberBid).send({
+                    from: accountAddress,
+                    value : valueBid
                 });
             });
 

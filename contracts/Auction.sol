@@ -117,7 +117,8 @@ contract AuctchainHouse {
         string,
         uint,
         uint256,
-        uint) {
+        uint,
+        uint256) {
 
         Auction a = auctions[idx];
 
@@ -128,7 +129,8 @@ contract AuctchainHouse {
             a.link,
             a.blockNumberOfDeadline,
             a.startingPrice,
-            a.bids.length);
+            a.bids.length,
+            a.currentBid);
     }
 
     function getAuctionCount() public view returns(uint) {
