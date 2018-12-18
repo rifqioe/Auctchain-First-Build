@@ -108,9 +108,9 @@
         </div>
     </div>
 
-    <div class="container">
+    <div class="container-fluid">
         <table class="table table-hover table-nd">
-            <caption>Bid List</caption>
+            <caption>Auction List</caption>
             <thead class="thead-dark">
                 <tr>
                     <th>Number</th>
@@ -122,6 +122,21 @@
                     <th>Start Price</th>
                     <th>Bids</th>
                     <th>Higest Bid</th>
+                </tr>
+            </thead>
+            <tbody id="table_auction">
+                <!-- History Goes Here -->
+            </tbody>
+        </table>
+    </div>
+    <div class="container-fluid">
+        <table class="table table-hover table-nd">
+            <caption>Bid List</caption>
+            <thead class="thead-dark">
+                <tr>
+                    <th>Bidder</th>
+                    <th>Amount</th>
+                    <th>Value</th>
                 </tr>
             </thead>
             <tbody id="table_historyBid">
@@ -194,12 +209,29 @@
 
             //     document.querySelector('#time').innerHTML = Math.round(times.reduce((a, b) => a + b) / times.length);
             // }
+            let idItem = 0;
+            AuctionHouse.methods.getBidCountForAuction(idItem).call().then(res => {
+                for (let i = 0; i < res; i++) {
+                    AuctionHouse.methods.getBidForAuctionByIdx(idItem,i).call().then(result => {
+                        let tableRef = document.getElementById('table_historyBid');
+                        let newRow = tableRef.insertRow(i);
+                        let newCell0 = newRow.insertCell(0);
+                        let newCell1 = newRow.insertCell(1);
+                        let newCell2 = newRow.insertCell(2);
+
+                        newCell0.appendChild(document.createTextNode(result[0]));
+                        newCell1.appendChild(document.createTextNode(result[1]));
+                        newCell2.appendChild(document.createTextNode(result[2]));
+                    });
+                }
+            });
+            
             
 
             AuctionHouse.methods.getAuctionCount().call().then(res => {
                 for (let i = 0; i < res; i++) {
                     AuctionHouse.methods.getAuction(i).call().then(result => {
-                        let tableRef = document.getElementById('table_historyBid');
+                        let tableRef = document.getElementById('table_auction');
                         let newRow = tableRef.insertRow(i);
                         let newCell0 = newRow.insertCell(0);
                         let newCell1 = newRow.insertCell(1);
@@ -217,11 +249,9 @@
                         newCell3.appendChild(document.createTextNode(result[2]));
                         newCell4.appendChild(document.createTextNode(result[3]));
                         newCell5.appendChild(document.createTextNode(result[4]));
-                        newCell6.appendChild(document.createTextNode(result[5]));
+                        newCell6.appendChild(document.createTextNode(web3.utils.fromWei(result[5],'ether') + " ETH"));
                         newCell7.appendChild(document.createTextNode(result[6]));
-                        newCell8.appendChild(document.createTextNode(result[7]));          
-                        
-                        alert(result[7]);
+                        newCell8.appendChild(document.createTextNode(web3.utils.fromWei(result[7],'ether') + " ETH"));          
                     });
                 }
             });
